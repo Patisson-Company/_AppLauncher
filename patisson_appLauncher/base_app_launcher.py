@@ -30,7 +30,7 @@ class BaseAppLauncher(ABC):
     
     
     def __post_init__(self) -> None:
-        self.socket_, self.port = BaseAppLauncher.get_socket(self.app_port)
+        self.socket_, self.port = self.get_socket(self.app_port)
         
     
     def consul_register(self, check_path: str = '/health',

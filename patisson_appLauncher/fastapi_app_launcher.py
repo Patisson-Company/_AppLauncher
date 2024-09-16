@@ -29,6 +29,7 @@ class BaseFastapiAppLauncher(BaseAppLauncher):
     
     def add_jaeger(self, add_validation_exception_handler: bool = True,
                    validation_exception_handler: Callable = validation_exception_handler):
+        
         trace.set_tracer_provider(
             TracerProvider(
                 resource=Resource.create({SERVICE_NAME: self.service_name})
@@ -47,17 +48,16 @@ class BaseFastapiAppLauncher(BaseAppLauncher):
     def add_consul_health_path(self, path: str = '/health', 
                                rout_func: Callable = consul_health_check):
         @self.app.get(path)
-        def wrapper():
-            rout_func()
+        def wrapper(): rout_func()
             
 
-class UvicornFastapiAppLuncher(BaseFastapiAppLauncher):
+class UvicornFastapiAppLauncher(BaseFastapiAppLauncher):
     
     def app_run(self):
         AppStarter.uvicorn_run(
             asgi_app=self.app, 
             host=self.host, 
-            port=BaseAppLauncher.socket_close(self.socket_, self.port)
+            port=self.socket_close(self.socket_, self.port)
             )
     
     
