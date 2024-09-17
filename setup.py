@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='patisson_appLauncher',
-    version='0.1.2',
+    version='0.2.0',
     packages=find_packages(),
     author='EliseyGodX',
     description='tools for connecting and managing Consul',

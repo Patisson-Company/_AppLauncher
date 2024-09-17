@@ -1,18 +1,21 @@
 from dataclasses import dataclass
 from typing import Callable
 
+from ariadne import load_schema_from_path, make_executable_schema
+from ariadne.asgi import GraphQL
+from fastapi import APIRouter, FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from patisson_appLauncher.base_app_launcher import AppStarter, BaseAppLauncher
-from abc import ABC
-from fastapi import FastAPI, APIRouter
 from opentelemetry import trace
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from fastapi.exceptions import RequestValidationError
 from patisson_errors.fastapi import validation_exception_handler
+from patisson_graphql.fastapi_handlers import graphql_server
+
+from patisson_appLauncher.base_app_launcher import AppStarter, BaseAppLauncher
 
 
 def consul_health_check():
@@ -49,6 +52,27 @@ class BaseFastapiAppLauncher(BaseAppLauncher):
                                rout_func: Callable = consul_health_check):
         @self.app.get(path)
         def wrapper(): rout_func()
+        
+    
+    def add_async_ariadne_graphql_route(self, 
+            resolvers: list, session_gen,
+            url_path: str = '/graphql', 
+            path_to_schema: str = 'app/api/graphql/schema.graphql',
+            graphql_server: Callable = graphql_server,
+            debug: bool = False):
+        type_defs = load_schema_from_path(path_to_schema)
+        schema = make_executable_schema(type_defs, resolvers)  
+        
+        @self.router.post(url_path)
+        async def graphql_route(request):
+            return await graphql_server(
+                request=request, 
+                schema=schema, 
+                session_gen=session_gen()
+            )
+        
+        graphql_app = GraphQL(schema, debug=debug)
+        self.router.add_route(url_path, graphql_app)  # type: ignore[reportArgumentType]
             
 
 class UvicornFastapiAppLauncher(BaseFastapiAppLauncher):

@@ -1,7 +1,7 @@
 import socket
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import AnyStr, Optional, TypeAlias
+from typing import Any, Callable, Optional, TypeAlias
 
 import requests
 from uvicorn._types import ASGIApplication
@@ -62,12 +62,15 @@ class BaseAppLauncher(ABC):
 
 class AppStarter:
     
-    @abstractmethod
-    def uvicorn_run(asgi_app: ASGIApplication, host: str, port: int):
+    @staticmethod
+    def uvicorn_run(asgi_app: ASGIApplication | Callable[..., Any] | str,
+                    host: str, port: int):
         import uvicorn
         uvicorn.run(asgi_app, host=host, port=port)
     
-    def gunicorn_run(self, host: str, port: int, app_path: str, workers: str = '1'):
+    
+    @staticmethod
+    def gunicorn_run(host: str, port: int, app_path: str, workers: str = '1'):
         import subprocess
         command = [
             "gunicorn",
