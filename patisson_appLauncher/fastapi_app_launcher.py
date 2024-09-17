@@ -60,6 +60,7 @@ class BaseFastapiAppLauncher(BaseAppLauncher):
             path_to_schema: str = 'app/api/graphql/schema.graphql',
             graphql_server: Callable = graphql_server,
             debug: bool = False):
+        
         type_defs = load_schema_from_path(path_to_schema)
         schema = make_executable_schema(type_defs, resolvers)  
         
@@ -73,6 +74,10 @@ class BaseFastapiAppLauncher(BaseAppLauncher):
         
         graphql_app = GraphQL(schema, debug=debug)
         self.router.add_route(url_path, graphql_app)  # type: ignore[reportArgumentType]
+        
+    
+    def include_router(self, *args, prefix='/api', **kwargs):
+        self.app.include_router(self.router, *args, prefix=prefix, **kwargs)
             
 
 class UvicornFastapiAppLauncher(BaseFastapiAppLauncher):
