@@ -37,9 +37,10 @@ class BaseAppLauncher(ABC):
                         check_interval: str = '30s',
                         check_timeout: str = '3s',
                         consul_register_address: str = 'http://localhost:8500/v1/agent/service/register'):
+        service_id = f"{self.service_name}:{self.port}"
         payload = {
             "Name": self.service_name,
-            "ID": f"{self.service_name}:{self.port}",
+            "ID": service_id,
             "Port": self.port,
             "Address": self.host,
             "Check": {
@@ -50,9 +51,10 @@ class BaseAppLauncher(ABC):
             }
         response = requests.put(consul_register_address, json=payload)
         if response.status_code == 200:
-            print(f"{self.service_name} registered")
+            print(f"Consul: {service_id} registered")
         else:
-            print(f"Error: {response.text}")
+            print(f"Consul error: {response.text}")
+            raise
             
             
     @abstractmethod

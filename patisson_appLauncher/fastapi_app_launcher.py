@@ -46,12 +46,15 @@ class BaseFastapiAppLauncher(BaseAppLauncher):
         
         if add_validation_exception_handler:
             self.app.add_exception_handler(RequestValidationError, validation_exception_handler)
+            
+        print(f'Successfully connected to jaeger')
 
 
-    def add_consul_health_path(self, path: str = '/health', 
+    def add_sync_consul_health_path(self, path: str = '/health', 
                                rout_func: Callable = consul_health_check):
         @self.app.get(path)
         def wrapper(): rout_func()
+        print('added sync consul health check path')
         
     
     def add_async_ariadne_graphql_route(self, 
@@ -75,9 +78,12 @@ class BaseFastapiAppLauncher(BaseAppLauncher):
         graphql_app = GraphQL(schema, debug=debug)
         self.router.add_route(url_path, graphql_app)  # type: ignore[reportArgumentType]
         
+        print('added async graphql (ariadne) route')
+        
     
     def include_router(self, *args, prefix='/api', **kwargs):
         self.app.include_router(self.router, *args, prefix=prefix, **kwargs)
+        print('include router in app')
             
 
 class UvicornFastapiAppLauncher(BaseFastapiAppLauncher):
