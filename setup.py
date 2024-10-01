@@ -4,6 +4,26 @@ setup(
     name='patisson_appLauncher',
     version='1.0.0',
     packages=find_packages(),
+    install_requires=[
+        "httpx",
+        "pydantic"
+    ],
+    extras_require={
+        "uvicorn": ["uvicorn"],
+        "gunicorn": ["gunicorn"],
+        "graphql": ["ariadne"],
+        "fastapi": ["fastapi"],
+        "jaeger": [
+            "opentelemetry-api",
+            "opentelemetry-sdk",
+            "opentelemetry-instrumentation"
+            ],
+        "async-fastapi-pack": [
+            "uvicorn",
+            "fastapi",
+            "jaeger"
+        ]
+    },
     author='EliseyGodX',
     description='tools for connecting and managing Consul',
     long_description=open('README.md').read(),
