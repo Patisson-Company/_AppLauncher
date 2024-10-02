@@ -21,7 +21,9 @@ setup(
         "async-fastapi-pack": [
             "uvicorn",
             "fastapi",
-            "jaeger"
+            "opentelemetry-api",
+            "opentelemetry-sdk",
+            "opentelemetry-instrumentation"
         ]
     },
     author='EliseyGodX',
