@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='patisson_appLauncher',
-    version='1.0.0',
+    version='1.0.1',
     packages=find_packages(),
     install_requires=[
         "httpx",
@@ -16,14 +16,17 @@ setup(
         "jaeger": [
             "opentelemetry-api",
             "opentelemetry-sdk",
-            "opentelemetry-instrumentation"
+            "opentelemetry-instrumentation",
+            "opentelemetry-exporter-jaeger"
             ],
         "async-fastapi-pack": [
             "uvicorn",
             "fastapi",
             "opentelemetry-api",
             "opentelemetry-sdk",
-            "opentelemetry-instrumentation"
+            "opentelemetry-instrumentation",
+            "opentelemetry-exporter-jaeger"
+            "opentelemetry-instrumentation-fastapi",
         ]
     },
     author='EliseyGodX',

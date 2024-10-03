@@ -96,7 +96,7 @@ class BaseFastapiAppLauncher(BaseAppLauncher):
         schema = make_executable_schema(type_defs, resolvers)  
         
         @self.router.post(url_path)
-        async def graphql_route(request):
+        async def graphql_route(request: Request):
             return await graphql_server(
                 request=request, 
                 schema=schema, 
