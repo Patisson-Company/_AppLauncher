@@ -33,6 +33,10 @@ class BaseAppLauncher(ABC):
     
     @block_decorator(['App Launcher: Start setting up'], block_type=BlockType.HEAD)
     def __post_init__(self) -> None:
+        block = Block(
+            text=['App Launcher: Start setting up',
+                  f'{self.host}/{self.service_name}"{self.port}'],
+            block_type=BlockType.HEAD)
         self.socket_, self.port = self.get_socket(self.app_port)
     
     
@@ -68,6 +72,7 @@ class BaseAppLauncher(ABC):
         response = block()
         if response.status_code != 200:
             raise ConnectionError(response.text)
+        httpx.put(f"http://localhost:8500/v1/agent/check/pass/{service_id}")
             
             
     @abstractmethod
