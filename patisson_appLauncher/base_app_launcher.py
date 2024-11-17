@@ -17,28 +17,24 @@ class BaseAppLauncher(ABC):
     host: str
     app_port: Optional[str | int] = None
 
-     
     @staticmethod
     def get_socket(port: Optional[str| int]) -> tuple[socket.socket, int]:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind(('', int(port) if port else 0))
         return sock, sock.getsockname()[1]
     
-    
     @staticmethod
     def socket_close(socket: socket.socket, port: SocketPort) -> SocketPort:
         socket.close()
         return port
     
-    
-    @block_decorator(['App Launcher: Start setting up'], block_type=BlockType.HEAD)
     def __post_init__(self) -> None:
-        block = Block(
-            text=['App Launcher: Start setting up',
-                  f'{self.host}/{self.service_name}"{self.port}'],
-            block_type=BlockType.HEAD)
         self.socket_, self.port = self.get_socket(self.app_port)
-    
+        Block(
+            text=['App Launcher: Start setting up',
+                  f'{self.host}:{self.port}/{self.service_name}'],
+            block_type=BlockType.HEAD
+            )()
     
     def consul_register(self, check_path: str = '/health',
                         check_interval: str = '30s',
@@ -78,7 +74,7 @@ class BaseAppLauncher(ABC):
     @abstractmethod
     def app_run(): 
         ''' '''
-        
+    
 
 class AppStarter:
     
@@ -90,7 +86,6 @@ class AppStarter:
     def uvicorn_run(asgi_app, host: str, port: int):
         import uvicorn
         uvicorn.run(asgi_app, host=host, port=port)
-    
     
     @staticmethod
     @block_decorator(
