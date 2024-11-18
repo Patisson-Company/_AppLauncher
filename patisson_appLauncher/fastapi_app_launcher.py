@@ -22,11 +22,13 @@ class BaseFastapiAppLauncher(BaseAppLauncher):
     router: APIRouter
     
     @block_decorator(['add token middleware'])
-    def add_token_middleware(self, get_token: Callable[..., Awaitable[str]]) -> None:
+    def add_token_middleware(self, get_token: Callable[..., Awaitable[str]],
+                             excluded_paths: list[str] = []) -> None:
         @self.app.middleware("http")
         async def middleware(request: Request, call_next):
             response: Response = await call_next(request)
-            response.headers["Authorization"] = await get_token()
+            if request.url.path not in excluded_paths:
+                response.headers["Authorization"] = await get_token()
             return response
     
     @block_decorator(['Connecting to Jaeger'])
