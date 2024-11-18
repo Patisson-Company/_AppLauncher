@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from typing import Callable, Optional
+from typing import Awaitable, Callable, Optional
 
-from fastapi import APIRouter, FastAPI, Request
+from fastapi import APIRouter, FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.types import ExceptionHandler
@@ -20,6 +20,14 @@ def consul_health_check():
 class BaseFastapiAppLauncher(BaseAppLauncher):
     app: FastAPI
     router: APIRouter
+    
+    @block_decorator(['add token middleware'])
+    def add_token_middleware(self, get_token: Callable[..., Awaitable[str]]) -> None:
+        @self.app.middleware("http")
+        async def middleware(request: Request, call_next):
+            response: Response = await call_next(request)
+            response.headers["Authorization"] = await get_token()
+            return response
     
     @block_decorator(['Connecting to Jaeger'])
     def add_jaeger(self, add_validation_exception_handler: bool = True,
