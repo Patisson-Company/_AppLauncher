@@ -72,7 +72,7 @@ class BaseAppLauncher(ABC):
             
             
     @abstractmethod
-    def app_run(): 
+    def app_run(self): 
         ''' '''
     
 
