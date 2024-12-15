@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='patisson_appLauncher',
-    version='1.1.0',
+    version='1.1.1',
     packages=find_packages(),
     install_requires=[
         "httpx",
@@ -11,7 +11,6 @@ setup(
     extras_require={
         "uvicorn": ["uvicorn"],
         "gunicorn": ["gunicorn"],
-        "graphql": ["ariadne"],
         "fastapi": ["fastapi"],
         "jaeger": [
             "opentelemetry-api",
