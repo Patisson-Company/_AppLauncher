@@ -6,8 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.types import ExceptionHandler
 from patisson_appLauncher.base_app_launcher import AppStarter, BaseAppLauncher
-from patisson_appLauncher.printX import (Block, BlockType, CallableWrapper,
-                                         block_decorator)
+from patisson_appLauncher.printX import block_decorator
 
 def consul_health_check():
     """
@@ -32,6 +31,29 @@ class BaseFastapiAppLauncher(BaseAppLauncher):
     """
     app: FastAPI
     router: APIRouter
+    
+    def add_route(self, **kwargs) -> None:
+        """
+        Adds a route to the FastAPI application.
+
+        This method serves as a wrapper around FastAPI's `add_api_route` method, 
+        allowing you to dynamically add routes to the application.
+
+        Args:
+            **kwargs: Arbitrary keyword arguments accepted by FastAPI's `add_api_route` method.
+                Common arguments include:
+                    - path (str): The URL path for the route.
+                    - endpoint (Callable): The function to handle requests to the route.
+                    - methods (List[str]): List of HTTP methods (e.g., ["GET", "POST"]).
+                    - name (str): A name for the route.
+                    - tags (List[str]): Tags for grouping routes in the OpenAPI documentation.
+                    - dependencies (List[Depends]): Dependencies for the route.
+
+        Returns:
+            None
+        """
+        self.router.add_api_route(**kwargs)
+        
 
     @block_decorator(['add token middleware'])
     def add_token_middleware(self, get_token: Callable[..., Awaitable[str]],
@@ -66,6 +88,7 @@ class BaseFastapiAppLauncher(BaseAppLauncher):
                 return response
             
         self.app.add_middleware(AuthMiddleware, excluded_paths=excluded_paths)
+
 
     @block_decorator(['Connecting to Jaeger'])
     def add_jaeger(self, add_validation_exception_handler: bool = True,
@@ -113,6 +136,7 @@ class BaseFastapiAppLauncher(BaseAppLauncher):
                 validation_exception_handler if validation_exception_handler is not None
                 else validation_exception_handler_)  # type: ignore[reportArgumentType]
 
+
     @block_decorator(['Added a synchronous health check route for Consul'])
     def add_sync_consul_health_path(self, path: str = '/health', 
                                rout_func: Callable = consul_health_check):
@@ -123,68 +147,11 @@ class BaseFastapiAppLauncher(BaseAppLauncher):
             path (str): The path for the health check route.
             rout_func (Callable): The function to execute for the health check.
         """
-        @self.app.get(path)
-        def wrapper(): rout_func()
+        self.router.add_api_route(path, rout_func, methods=["GET"])
         
-    def add_async_ariadne_graphql_route(self, 
-            resolvers: list, session_gen,
-            url_path: str = '/graphql', 
-            path_to_schema: str = 'app/api/graphql/schema.graphql',
-            graphql_server: Optional[Callable] = None,
-            debug: bool = False):
-        """
-        Adds an asynchronous GraphQL route using Ariadne.
-
-        Args:
-            resolvers (list): List of resolvers for GraphQL schema.
-            session_gen: Generator for database sessions.
-            url_path (str): The URL path for the GraphQL endpoint.
-            path_to_schema (str): Path to the GraphQL schema file.
-            graphql_server (Optional[Callable]): Custom GraphQL server function.
-            debug (bool): Enable debugging for the GraphQL server.
-        """
-        from ariadne import load_schema_from_path, make_executable_schema, graphql
-        from ariadne.asgi import GraphQL
-        from graphql import GraphQLSchema
-        from contextlib import _AsyncGeneratorContextManager
-        
-        async def graphql_server_(request: Request, schema: GraphQLSchema,
-            session_gen: _AsyncGeneratorContextManager):
-            data = await request.json()
-            async with session_gen as session:
-                success, result = await graphql(
-                    schema,
-                    data,
-                    context_value={"db": session}, 
-                    debug=True,
-                )
-            return result
-        
-        graphql_server = graphql_server if graphql_server is not None else graphql_server_
-        type_defs = load_schema_from_path(path_to_schema)
-        schema = make_executable_schema(type_defs, resolvers)  
-        
-        @self.router.post(url_path)
-        async def graphql_route(request: Request):
-            return await graphql_server(
-                request=request, 
-                schema=schema, 
-                session_gen=session_gen()
-            )
-        block = Block(
-            text=['Adding asynchronous graphql route (ariadne)',
-                  f'{url_path=}, {path_to_schema=}, {debug=}',
-                  ],
-            func=CallableWrapper(
-                func=GraphQL,
-                args=[schema],
-                kwargs={'debug': debug}
-            )
-            )
-        self.router.add_route(url_path, block())  # type: ignore[reportArgumentType]
         
     @block_decorator(['Include router in app'])
-    def include_router(self, *args, prefix='/api', **kwargs):
+    def include_router(self, *args, prefix='', **kwargs):
         """
         Includes the API router in the FastAPI application.
 
