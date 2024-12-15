@@ -1,3 +1,6 @@
+"""
+Complements the basic module, simplifying integration with fastapi
+"""
 from dataclasses import dataclass
 from typing import Awaitable, Callable, Collection, Optional
 
@@ -42,12 +45,12 @@ class BaseFastapiAppLauncher(BaseAppLauncher):
         Args:
             **kwargs: Arbitrary keyword arguments accepted by FastAPI's `add_api_route` method.
                 Common arguments include:
-                    - path (str): The URL path for the route.
-                    - endpoint (Callable): The function to handle requests to the route.
-                    - methods (List[str]): List of HTTP methods (e.g., ["GET", "POST"]).
-                    - name (str): A name for the route.
-                    - tags (List[str]): Tags for grouping routes in the OpenAPI documentation.
-                    - dependencies (List[Depends]): Dependencies for the route.
+                - **path** (str): The URL path for the route.
+                - **endpoint** (Callable): The function to handle requests to the route.
+                - **methods** (List[str]): List of HTTP methods (e.g., ["GET", "POST"]).
+                - **name** (str): A name for the route.
+                - **tags** (List[str]): Tags for grouping routes in the OpenAPI documentation.
+                - **dependencies** (List[Depends]): Dependencies for the route.
 
         Returns:
             None
@@ -138,16 +141,18 @@ class BaseFastapiAppLauncher(BaseAppLauncher):
 
 
     @block_decorator(['Added a synchronous health check route for Consul'])
-    def add_sync_consul_health_path(self, path: str = '/health', 
+    def add_sync_consul_health_path(self, path: Optional[str] = None, 
                                rout_func: Callable = consul_health_check):
         """
         Adds a synchronous health check route for Consul.
 
         Args:
-            path (str): The path for the health check route.
+            path (str | None): The path for the health check route.
+                        If the value is None, the string f'/health' is used
             rout_func (Callable): The function to execute for the health check.
         """
-        self.router.add_api_route(path, rout_func, methods=["GET"])
+        self.health_path = path if path else f'/health'
+        self.router.add_api_route(self.health_path, rout_func, methods=["GET"])
         
         
     @block_decorator(['Include router in app'])
