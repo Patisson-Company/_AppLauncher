@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "patisson-applauncher"
 version = "1.2.0"
-description = "tools for developing microservices using GraphQL"
+description = "a launcher for properly launching microservices"
 authors = ["EliseyGodX"]
 license = "MIT"
 readme = "README.md"
