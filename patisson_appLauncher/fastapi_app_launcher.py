@@ -1,6 +1,7 @@
 """
 Complements the basic module, simplifying integration with fastapi
 """
+
 from dataclasses import dataclass
 from typing import Awaitable, Callable, Collection, Optional
 

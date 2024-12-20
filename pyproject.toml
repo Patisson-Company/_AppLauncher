@@ -1,0 +1,70 @@
+[tool.poetry]
+name = "patisson-applauncher"
+version = "1.2.0"
+description = "tools for developing microservices using GraphQL"
+authors = ["EliseyGodX"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+colorama = "^0.4.6"
+pydantic = "^2.10.4"
+httpx = "^0.28.1"
+fastapi = { version = "^0.115.6", optional = true }
+uvicorn = { version = "^0.34.0", optional = true }
+gunicorn = { version = "^23.0.0", optional = true }
+opentelemetry-api = { version = "^1.29.0", optional = true }
+opentelemetry-sdk = { version = "^1.29.0", optional = true }
+opentelemetry-exporter-jaeger-thrift = { version = "^1.21.0", optional = true }
+opentelemetry-instrumentation-fastapi = { version = "^0.50b0", optional = true }
+opentelemetry-instrumentation-logging = { version = "^0.50b0", optional = true }
+opentelemetry-instrumentation-requests = { version = "^0.50b0", optional = true }
+opentelemetry-instrumentation-sqlalchemy = { version = "^0.50b0", optional = true }
+opentelemetry-instrumentation-asyncpg = { version = "^0.50b0", optional = true }
+
+
+[tool.poetry.group.dev.dependencies]
+opentelemetry-api = "^1.29.0"
+opentelemetry-sdk = "^1.29.0"
+opentelemetry-exporter-jaeger-thrift = "^1.21.0"
+opentelemetry-instrumentation-fastapi = "^0.50b0"
+opentelemetry-instrumentation-logging = "^0.50b0"
+opentelemetry-instrumentation-requests = "^0.50b0"
+opentelemetry-instrumentation-sqlalchemy = "^0.50b0"
+opentelemetry-instrumentation-asyncpg = "^0.50b0"
+fastapi = "^0.115.6"
+uvicorn = "^0.34.0"
+gunicorn = "^23.0.0"
+pytest = "^8.3.4"
+
+
+[tool.poetry.extras]
+uvicorn = ["uvicorn"]
+gunicorn = ["gunicorn"]
+opentelemetry = [
+    "opentelemetry-api",
+    "opentelemetry-sdk",
+    "opentelemetry-exporter-jaeger-thrift",
+    "opentelemetry-instrumentation-fastapi",
+    "opentelemetry-instrumentation-logging",
+    "opentelemetry-instrumentation-requests",
+    "opentelemetry-instrumentation-sqlalchemy",
+    "opentelemetry-instrumentation-asyncpg",
+]
+async_fastapi_pack = [
+    "uvicorn",
+    "opentelemetry-api",
+    "opentelemetry-sdk",
+    "opentelemetry-exporter-jaeger-thrift",
+    "opentelemetry-instrumentation-fastapi",
+    "opentelemetry-instrumentation-logging",
+    "opentelemetry-instrumentation-requests",
+    "opentelemetry-instrumentation-sqlalchemy",
+    "opentelemetry-instrumentation-asyncpg",
+]
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
