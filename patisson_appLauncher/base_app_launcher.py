@@ -1,5 +1,5 @@
 """
-This module contains the base class for launching applications and registering them with Consul, as well as 
+This module contains the base class for launching applications and registering them with Consul, as well as
 utility methods for running applications with different servers (Uvicorn, Gunicorn).
 """
 
@@ -19,7 +19,7 @@ SocketPort = TypeVar("SocketPort")
 @dataclass(kw_only=True)
 class BaseAppLauncher(ABC):
     """
-    Abstract base class for launching applications with socket management, health checks, 
+    Abstract base class for launching applications with socket management, health checks,
     and registration in Consul.
 
     Attributes:
@@ -28,10 +28,11 @@ class BaseAppLauncher(ABC):
         app_port (Optional[str | int]): Optional port for the application.
 
     Methods:
-        get_socket(port): Creates and binds a socket to the given port, returning the socket and the bound port.
+        get_socket(port): Creates and binds a socket to the given port, returning the socket and the
+            bound port.
         socket_close(socket, port): Closes the socket and returns the original port.
         __post_init__(): Initializes the socket and logs the service setup.
-        consul_register(check_path, check_interval, check_timeout, consul_register_address): 
+        consul_register(check_path, check_interval, check_timeout, consul_register_address):
             Registers the service in Consul, setting up health check paths and intervals.
         app_run(): Abstract method to run the application (must be implemented in subclasses).
     """
@@ -40,14 +41,16 @@ class BaseAppLauncher(ABC):
     app_port: Optional[str | int] = None
 
     @staticmethod
-    def get_socket(port: Optional[str| int]) -> tuple[socket.socket, int]:
+    def get_socket(port: Optional[str | int]) -> tuple[socket.socket, int]:
         """
         Creates a socket and binds it to the provided port.
 
-        If a port is provided, it binds to that port; if no port is provided, it binds to a random available port.
+        If a port is provided, it binds to that port; if no port is provided, it binds to a random
+            available port.
 
         Args:
-            port (Optional[str | int]): The port to bind the socket to. If not provided, a random port is used.
+            port (Optional[str | int]): The port to bind the socket to. If not provided, a random port
+                is used.
 
         Returns:
             tuple[socket.socket, int]: A tuple containing the created socket and the bound port number.
@@ -55,7 +58,7 @@ class BaseAppLauncher(ABC):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind(('', int(port) if port else 0))
         return sock, sock.getsockname()[1]
-    
+
     @staticmethod
     def socket_close(socket: socket.socket, port: SocketPort) -> SocketPort:
         """
@@ -70,12 +73,12 @@ class BaseAppLauncher(ABC):
         """
         socket.close()
         return port
-    
+
     def __post_init__(self) -> None:
         """
         Initializes the socket and port, and logs the service setup process.
 
-        This method is automatically called after the object is initialized. It binds the socket 
+        This method is automatically called after the object is initialized. It binds the socket
         to the specified port and logs the service startup information.
         """
         self.socket_, self.port = self.get_socket(self.app_port)
@@ -84,7 +87,7 @@ class BaseAppLauncher(ABC):
                   f'{self.host}:{self.port}/{self.service_name}'],
             block_type=BlockType.HEAD
             )()
-    
+
     def consul_register(self, check_path: Optional[str] = None,
                         check_interval: str = '30s',
                         check_timeout: str = '3s',
@@ -92,24 +95,29 @@ class BaseAppLauncher(ABC):
         """
         Registers the service in Consul with health check configurations.
 
-        This method registers the service with Consul, setting up the health check path, 
-        check interval, and check timeout. It sends the registration request to the Consul agent 
+        This method registers the service with Consul, setting up the health check path,
+        check interval, and check timeout. It sends the registration request to the Consul agent
         and verifies the registration was successful.
 
         Args:
             check_path (Optional[str]): The health check path for the service. Defaults to None.
             check_interval (str): The interval between health checks. Defaults to '30s'.
             check_timeout (str): The timeout for each health check. Defaults to '3s'.
-            consul_register_address (str): The URL of the Consul agent to register the service. Defaults to 'http://localhost:8500/v1/agent/service/register'.
+            consul_register_address (str): The URL of the Consul agent to register the service. Defaults
+                to 'http://localhost:8500/v1/agent/service/register'.
 
         Raises:
             AttributeError: If health_path is not defined before calling this method.
             ConnectionError: If the registration response from Consul is not successful.
         """
         try:
-            check_path = check_path if check_path else self.health_path  # type: ignore[reportAttributeAccessIssue]
+            check_path = (check_path if check_path
+                          else self.health_path)  # type: ignore[reportAttributeAccessIssue]
         except AttributeError:
-            raise AttributeError('before the consul_register method, call the method that defines health_path or pass the route explicitly to check_path')
+            raise AttributeError(
+                'before the consul_register method, call the method that defines '
+                'health_path or pass the route explicitly to check_path'
+            )
         service_id = f"{self.service_name}:{self.port}"
         http_ = f"http://{self.host}:{self.port}{check_path}"
         payload = {
@@ -124,7 +132,7 @@ class BaseAppLauncher(ABC):
                 }
             }
         block = Block(
-            text=['Registration in Consul', consul_register_address, 
+            text=['Registration in Consul', consul_register_address,
                   f'{service_id=}, {self.port=}, {self.host=}',
                   f'{check_interval=}, {check_timeout=}',
                   f'check path: {http_}'
@@ -139,10 +147,9 @@ class BaseAppLauncher(ABC):
         if response.status_code != 200:
             raise ConnectionError(response.text)
         httpx.put(f"http://localhost:8500/v1/agent/check/pass/{service_id}")
-            
-            
+
     @abstractmethod
-    def app_run(self): 
+    def app_run(self) -> None:
         """
         Abstract method to run the application.
 
@@ -152,7 +159,6 @@ class BaseAppLauncher(ABC):
             NotImplementedError: If the method is not implemented in the subclass.
         """
 
-    
 
 class AppStarter:
     """
@@ -160,16 +166,16 @@ class AppStarter:
 
     Methods:
         uvicorn_run(asgi_app, host, port): Runs the application with Uvicorn on the specified host and port.
-        gunicorn_run(host, port, app_path, workers): Runs the application with Gunicorn, specifying 
+        gunicorn_run(host, port, app_path, workers): Runs the application with Gunicorn, specifying
             the host, port, app path, and number of workers.
     """
-    
+
     @staticmethod
     @block_decorator(
-        ['App Launcher: The setup is completed successfully', 'Uvicorn run'], 
+        ['App Launcher: The setup is completed successfully', 'Uvicorn run'],
         block_type=BlockType.TAIL
         )
-    def uvicorn_run(asgi_app, host: str, port: int):
+    def uvicorn_run(asgi_app, host: str, port: int) -> None:
         """
         Runs the application with Uvicorn on the specified host and port.
 
@@ -180,13 +186,13 @@ class AppStarter:
         """
         import uvicorn
         uvicorn.run(asgi_app, host=host, port=port)
-    
+
     @staticmethod
     @block_decorator(
-        ['App Launcher: The setup is completed successfully', 'Gunicorn run'], 
+        ['App Launcher: The setup is completed successfully', 'Gunicorn run'],
         block_type=BlockType.TAIL
         )
-    def gunicorn_run(host: str, port: int, app_path: str, workers: str = '1'):
+    def gunicorn_run(host: str, port: int, app_path: str, workers: str = '1') -> None:
         """
         Runs the application with Gunicorn, specifying the host, port, app path, and number of workers.
 
@@ -204,4 +210,3 @@ class AppStarter:
             app_path
         ]
         subprocess.run(command)
-    
