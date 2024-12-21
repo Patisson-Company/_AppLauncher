@@ -1,4 +1,5 @@
 from pytest import CaptureFixture
+
 from patisson_appLauncher.printX import Block, BlockType, block_decorator
 
 
